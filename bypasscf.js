@@ -41,6 +41,7 @@ console.log(
   `运行时间限制为：${runTimeLimitMinutes} 分钟 (${runTimeLimitMillis} 毫秒)`
 );
 
+
 // 设置一个定时器，在运行时间到达时终止进程
 const shutdownTimer = setTimeout(() => {
   console.log("时间到,Reached time limit, shutting down the process...");
@@ -61,7 +62,14 @@ const delayBetweenBatches =
   runTimeLimitMillis / Math.ceil(totalAccounts / maxConcurrentAccounts);
 const isLikeSpecificUser = process.env.LIKE_SPECIFIC_USER || "false";
 const isAutoLike = process.env.AUTO_LIKE || "true";
-const enableRssFetch = process.env.ENABLE_RSS_FETCH || "false"; // 是否开启抓取RSS
+const enableRssFetch = process.env.ENABLE_RSS_FETCH === "true"; // 是否开启抓取RSS，只有显式设置为 "true" 才开启
+
+console.log(
+  `RSS抓取功能状态: ${enableRssFetch ? "开启" : "关闭"} (ENABLE_RSS_FETCH=${
+    process.env.ENABLE_RSS_FETCH
+  })`
+);
+
 let bot;
 if (token && (chatId || groupId)) {
   bot = new TelegramBot(token);
@@ -70,7 +78,7 @@ function sendToTelegram(message) {
   if (!bot || !chatId) return;
 
   bot
-    .sendMessage(chatId, message, { parse_mode: "HTML" })
+    .sendMessage(chatId, message)
     .then(() => {
       console.log("Telegram message sent successfully");
     })
@@ -102,7 +110,7 @@ function sendToTelegramGroup(message) {
     while (start < message.length) {
       const chunk = message.slice(start, start + MAX_LEN);
       bot
-        .sendMessage(groupId, chunk, { parse_mode: "HTML" })
+        .sendMessage(groupId, chunk)
         .then(() => {
           console.log(`Telegram group message part ${part} sent successfully`);
         })
